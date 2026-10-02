@@ -222,30 +222,14 @@ async def iccha_session(ctx: JobContext) -> None:
 
     logger.info("Session started | room=%s", ctx.room.name)
 
-    # Resolve TTS engine:
-    # Cartesia Sonic-3 has global availability (no regional IP block) and
-    # native Hindi support ('ce45ddca-5f4b-4047-ada3-3fce2bc78acd' Kavya).
-    # Smallest.ai Lightning is supported in India region.
-    cartesia_key = (
-        settings.cartesia_api_key
-        or os.getenv("CARTESIA_API_KEY")
-        or "sk_car_nsQNsv35mfFQb18VQaJk54"
+    # ── TTS: Smallest.ai Lightning via persistent WebSocket streaming ─
+    # Sub-100ms real-time audio chunk streaming over wss://api.smallest.ai/waves/v1/tts/live
+    tts_engine = smallestai.TTS(
+        api_key=settings.smallest_ai_api_key or os.getenv("SMALLEST_API_KEY"),
+        model="lightning_v3.1",
+        voice_id="sunidhi",
+        language="hi",
     )
-    if cartesia_key:
-        tts_engine = cartesia.TTS(
-            api_key=cartesia_key,
-            model="sonic-3",
-            voice="ce45ddca-5f4b-4047-ada3-3fce2bc78acd",  # Kavya - Hindi
-            language="hi",
-            word_timestamps=False,
-        )
-    else:
-        tts_engine = smallestai.TTS(
-            api_key=settings.smallest_ai_api_key or os.getenv("SMALLEST_API_KEY"),
-            model="lightning_v3.1",
-            voice_id="sunidhi",
-            language="hi",
-        )
 
     session = AgentSession(
         # ── STT ──────────────────────────────────────────────────────────
